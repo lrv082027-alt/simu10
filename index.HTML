@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2º Simulado PMMA - Modelo Certo/Errado</title>
+  <style>
+    :root {
+      --bg-color: #f4f7f6;
+      --card-bg: #ffffff;
+      --primary: #1e3a8a;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --text: #1f2937;
+      --border: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text);
+      padding-bottom: 60px;
+    }
+
+    /* Fixed Score Header */
+    .score-header {
+      position: sticky;
+      top: 0;
+      background: var(--primary);
+      color: white;
+      padding: 12px 20px;
+      z-index: 1000;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .score-header h1 {
+      font-size: 1.2rem;
+    }
+
+    .score-stats {
+      display: flex;
+      gap: 15px;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .stat-badge {
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .stat-badge.net {
+      background: #f59e0b;
+      color: #000;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+
+    .info-box {
+      background: #ebf8ff;
+      border-left: 5px solid #3182ce;
+      padding: 15px;
+      margin-bottom: 25px;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .section-title {
+      background: var(--primary);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 6px;
+      margin: 30px 0 15px 0;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+    }
+
+    .text-ref {
+      background: #fffbea;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      white-space: pre-line;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .text-ref h4 {
+      margin-bottom: 8px;
+      color: #b45309;
+    }
+
+    .question-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: border 0.2s;
+    }
+
+    .question-card.correct-card {
+      border-left: 6px solid var(--success);
+    }
+
+    .question-card.wrong-card {
+      border-left: 6px solid var(--danger);
+    }
+
+    .question-card.blank-card {
+      border-left: 6px solid #9ca3af;
+    }
+
+    .q-number {
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 8px;
+      font-size: 1.05rem;
+    }
+
+    .q-text {
+      font-size: 1rem;
+      line-height: 1.5;
+      margin-bottom: 15px;
+    }
+
+    .options-group {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .btn-option {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid var(--border);
+      background: #f9fafb;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .btn-option:hover {
+      background: #e5e7eb;
+    }
+
+    .btn-option.selected-C {
+      background: #dcfce7;
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .btn-option.selected-E {
+      background: #fee2e2;
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .btn-option.selected-B {
+      background: #f3f4f6;
+      border-color: #6b7280;
+      color: #374151;
+    }
+
+    /* Oculto por padrão até a resposta do usuário */
+    .gabarito-box {
+      display: none;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 6px;
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 0.9rem;
+    }
+
+    .badge-gabarito {
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: white;
+    }
+
+    .badge-gabarito.C { background-color: var(--success); }
+    .badge-gabarito.E { background-color: var(--danger); }
+
+    .user-result {
+      font-weight: 600;
+    }
+
+    .user-result.correct { color: var(--success); }
+    .user-result.wrong { color: var(--danger); }
+    .user-result.blank { color: #6b7280; }
+
+    .reset-btn {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .reset-btn:hover {
+      background: #dc2626;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="score-header">
+    <h1>2º SIMULADO PMMA</h1>
+    <div class="score-stats">
+      <div class="stat-badge">Respondidas: <span id="stat-total">0</span>/120</div>
+      <div class="stat-badge" style="color: #4ade80;">Certas: <span id="stat-certo">0</span></div>
+      <div class="stat-badge" style="color: #f87171;">Erradas: <span id="stat-errado">0</span></div>
+      <div class="stat-badge" style="color: #cbd5e1;">Branco: <span id="stat-branco">120</span></div>
+      <div class="stat-badge net">Nota Líquida: <span id="stat-score">0</span></div>
+    </div>
+    <button class="reset-btn" onclick="resetQuiz()">Reiniciar</button>
+  </div>
+
+  <div class="container">
+    <div class="info-box">
+      <strong>Regra de Pontuação Cebraspe:</strong> Cada resposta <strong>Certa</strong> soma 1 ponto, cada resposta <strong>Errada</strong> subtrai 1 ponto. Questões <strong>Em Branco</strong> não pontuam.
+      <br><em>O gabarito oficial de cada questão é revelado assim que você clica em uma resposta.</em>
+    </div>
+
+    <div id="quiz-content"></div>
+  </div>
+
+  <script>
+    const questionsData = [
+      {
+        section: "Língua Portuguesa",
+        textRef: `Texto: As palavras que nos exprimem\n\nHá palavras estrangeiras absolutamente necessárias para nossa comunicação, como é o caso de termos técnicos ligados à computação ou de vocábulos cujo sentido muito específico na língua original torna muito difícil, ou quase impossível, encontrar tradução adequada.\n\nMas é um tanto ridículo o abuso pretensioso de palavras estrangeiras, como "off" em vez de desconto, ou "free" em vez de grátis. Nos programas de congressos, em vez de se ler "Intervalo para café" ou, mais simplesmente, "Cafezinho", lê-se "coffee break". Aqui, o ridículo pesa de um modo especial. Tomar um cafezinho é um hábito brasileiro, é um momento de sociabilidade. Antes dos "shopping centers" (eis aqui uma expressão estrangeira já integrada em nossa vida), havia no país incontáveis "cafés" de rua, pequenos estabelecimentos que eram pontos de conversa amiga.\n\nDesde o século XIX o Brasil teve boa parte de sua economia sustentada pelo café, exportou café para o mundo, criaram-se muitos postos de trabalho, fortunas se fizeram, exportamos, exportamos, exportamos e de repente ele volta para nós importado, com sotaque americano, como prova de prestígio: "coffee break". É como se a matriz central devolvesse para a filial da periferia aquela banana importada que agora volta com selo de exportação para os que acham que em inglês tudo fica mais importante. Para aceitar aquilo que os estrangeiros possam ter de melhor, não é preciso subestimar o que seja legitimamente nosso, e alimentar assim um tolo complexo de inferioridade.\n(Adalberto Tolentino, inédito)`,
+        items: [
+          { n: 1, q: "Quanto ao emprego de termos estrangeiros em nosso país, a posição do autor do texto consiste, resumidamente, em acatar esse uso, desde que a razão disso seja o fato de não haver expressão similar em nossa língua.", g: "C" },
+          { n: 2, q: "No primeiro parágrafo, o autor sugere que sempre é possível encontrar numa determinada língua uma expressão cujo sentido seja equivalente ao de uma expressão de outra língua.", g: "E" },
+          { n: 3, q: "No terceiro parágrafo, a importância histórica do café em nossa economia e em nossa cultura é ressaltada pelo autor do texto para mostrar o ridículo do emprego da expressão \"coffee break\".", g: "C" },
+          { n: 4, q: "A expressão \"o abuso pretensioso de palavras estrangeiras\" (no primeiro período do segundo parágrafo) funciona como complemento da oração em que se insere.", g: "E" },
+          { n: 5, q: "No segundo período do segundo parágrafo, o vocábulo \"se\", nas duas ocorrências, é usado para indeterminar o sujeito.", g: "E" },
+          { n: 6, q: "No primeiro parágrafo, pode-se substituir \"computação\" por computadores mantendo a correção gramatical.", g: "E" },
+          { n: 7, q: "No segundo período do terceiro parágrafo, o vocábulo \"que\", em: \"para os que acham que em inglês tudo fica mais importante\", funciona como sujeito da oração em que está inserido.", g: "C" },
+          { n: 8, q: "Pode-se colocar uma vírgula depois do termo \"vocábulos\", (no primeiro parágrafo) mantendo a correção gramatical e os sentidos originais do texto.", g: "E" },
+          { n: 9, q: "Pode-se substituir \"havia\" (no último período do segundo parágrafo) por existia, mantendo o mesmo sentido e a correção gramatical.", g: "E" },
+          { n: 10, q: "A vírgula depois do vocábulo \"melhor\" (no terceiro período do terceiro parágrafo) é obrigatória.", g: "C" },
+          { n: 11, q: "No último período do segundo parágrafo, o \"que\" introduz restrição.", g: "C" },
+          { n: 12, q: "No primeiro período do segundo parágrafo, pode-se substituir o \"Mas\" por Embora, desde que ajustada a forma verbal \"é\", que deve ficar seja.", g: "E" }
+        ]
+      },
+      {
+        section: "História do Brasil",
+        items: [
+          { n: 13, q: "A crise do regime democrático brasileiro no início da década de 1960 resultou da combinação de conflitos políticos, tensões sociais e disputas em torno dos projetos de desenvolvimento nacional, de modo que a instabilidade do período não pode ser explicada exclusivamente pela atuação de um único grupo político.", g: "C" },
+          { n: 14, q: "O golpe de 1964 deve ser compreendido apenas como uma intervenção militar destinada à substituição do presidente da República, sem produzir alterações significativas na estrutura política e institucional brasileira ao longo dos anos seguintes.", g: "E" },
+          { n: 15, q: "A consolidação do regime militar esteve associada à utilização de mecanismos institucionais destinados a restringir a participação política e ampliar o controle do Estado sobre a sociedade, evidenciando que a manutenção do regime dependeu tanto da coerção quanto da reorganização das instituições políticas.", g: "C" },
+          { n: 16, q: "A crise do regime militar decorreu exclusivamente da incapacidade econômica do governo de manter o crescimento observado em períodos anteriores, tendo os fatores políticos e sociais desempenhado papel secundário no processo de redemocratização.", g: "E" },
+          { n: 17, q: "A redemocratização brasileira caracterizou-se por um processo gradual de reconstrução institucional, no qual a ampliação das liberdades políticas ocorreu de forma progressiva, culminando na reorganização constitucional que resultou na Constituição de 1988.", g: "C" },
+          { n: 18, q: "A organização política do território brasileiro resulta da articulação entre território, população e instituições estatais, de modo que a ideia de nação não se confunde integralmente com a delimitação física do território nacional.", g: "C" },
+          { n: 19, q: "No Estado brasileiro, a existência de um território nacional unificado implica a inexistência de diferenças políticas, econômicas e sociais entre as distintas regiões do país, uma vez que a unidade territorial produz necessariamente homogeneidade interna.", g: "E" },
+          { n: 20, q: "A organização do Estado brasileiro estabelece diferentes níveis de governo e distribui competências entre eles, de modo que a estrutura federativa pressupõe a existência de autonomia política dos entes federados dentro dos limites estabelecidos pela Constituição.", g: "C" }
+        ]
+      },
+      {
+        section: "História do Maranhão",
+        items: [
+          { n: 21, q: "A adesão do Maranhão à Independência do Brasil deve ser compreendida como resultado de disputas entre grupos locais com diferentes vínculos políticos e econômicos, não sendo suficiente explicá-la apenas como consequência automática da proclamação da Independência no centro-sul do território.", g: "C" },
+          { n: 22, q: "A resistência inicial de setores maranhenses ao projeto de Independência demonstra que a ruptura política com Portugal não significava, necessariamente, a existência de consenso entre as elites locais acerca da nova organização política do Brasil.", g: "C" },
+          { n: 23, q: "A adesão do Maranhão à República pode ser interpretada como uma ruptura política que eliminou imediatamente as estruturas de poder construídas durante o período imperial, permitindo a substituição das antigas elites por novos grupos sociais sem continuidade das relações políticas anteriores.", g: "E" },
+          { n: 24, q: "A implantação da República no Maranhão pode ser entendida simultaneamente como mudança do regime político e como processo de continuidade das relações de poder existentes, uma vez que a alteração institucional não implicou a imediata democratização da sociedade maranhense.", g: "C" },
+          { n: 25, q: "A Revolução de 1930, ao atingir o Maranhão, expressou em escala estadual a crise do sistema político da Primeira República, contribuindo para o enfraquecimento das estruturas oligárquicas que sustentavam a política estadual.", g: "C" },
+          { n: 26, q: "No Maranhão, a Revolução de 1930 representou essencialmente uma disputa entre grupos políticos locais, sem relação significativa com a crise nacional da Primeira República, razão pela qual suas consequências ficaram restritas à substituição do governo estadual.", g: "E" },
+          { n: 27, q: "A Revolução de 1930 alterou a relação entre o poder estadual e o poder central no Maranhão, inserindo o estado em uma conjuntura na qual a centralização política promovida pelo novo governo federal reduziu a autonomia característica das oligarquias estaduais da Primeira República.", g: "C" },
+          { n: 28, q: "Na segunda metade do século XX, a modernização econômica do Maranhão produziu efeitos exclusivamente positivos sobre a sociedade estadual, pois a expansão de grandes projetos econômicos eliminou os conflitos relacionados à terra e reduziu as desigualdades socioespaciais.", g: "E" }
+        ]
+      },
+      {
+        section: "Geografia do Brasil",
+        textRef: `Texto de referência (Q29-30):\n"De um país de economia eminentemente rural e de economia primário-exportadora baseada no regime escravocrata emerge, no século XX, um Brasil urbano, industrial e de relações de trabalho dominantemente capitalista: uma transformação de grande profundidade. O padrão locacional das atividades econômicas e a dinâmica espacial do país também se alteraram profundamente."\n(Cadernos Regionais, Ministério do Planejamento, 2022)`,
+        items: [
+          { n: 29, q: "As antigas bases primário-exportadora eram concentradas em diversas regiões do país, cuja dinâmica espacial de cada \"economia regional\" era comandada pela demanda interna (por açúcar, minério, borracha e café), gerando o surgimento de 'ilhas' de prosperidade.", g: "E" },
+          { n: 30, q: "O desenvolvimento da agricultura e da indústria não apenas modificou a dimensão dos fluxos de comércio, mas transformou as estruturas produtivas de diversas regiões, resultando em maior diferenciação do espaço nacional, com o aumento da heterogeneidade interna e reforço de certas \"especializações\".", g: "C" }
+        ]
+      },
+      {
+        section: "Geografia do Brasil (continuação)",
+        textRef: `Poema de referência (Q31-32):\n"...Porque és o avesso, do avesso, do avesso do avesso,\nDo povo oprimido nas filas, nas vilas, favelas\nDa força da grana que ergue e\nDestrói coisas belas\nDa feia fumaça que sobe apagando as estrelas..."\n(Sampa, Caetano Veloso)`,
+        items: [
+          { n: 31, q: "Um dos fatores que determinam o preço dos terrenos e imóveis urbanos tem como ponto de partida a localização do terreno, o acesso aos lugares ditos privilegedos (shopping centers, escolas, prédios...), a infraestrutura e a privacidade. Então podemos entender o espanto de quem chega à grande cidade pela dimensão de tudo, e também pelo valor que o espaço urbano tem. É o avesso do avesso...", g: "C" },
+          { n: 32, q: "Nas grandes cidades encontramos dois tipos de periferia: uma destinada à população pobre, sem infraestrutura e outra destinada à população de classe média e alta, que foge da metrópole em busca da natureza do ar puro longe dos \"inconvenientes\" que o progresso trouxe, amenizando e reduzindo a segregação socioespacial. A feia fumaça...", g: "E" }
+        ]
+      },
+      {
+        section: "Geografia do Brasil (continuação)",
+        textRef: `Texto de referência (Q33-34):\nA inserção do Brasil no processo de internacionalização da economia intensificou-se particularmente a partir da década de 1990, quando a abertura econômica e a maior atração de investimento direto estrangeiro ampliaram a presença de empresas transnacionais na estrutura produtiva nacional. Esse movimento não significou, entretanto, uma integração homogênea ou necessariamente autônoma à economia mundial...\n(Pereira, Adriano José; Dathein, Ricardo, 2021)`,
+        items: [
+          { n: 33, q: "A internacionalização da economia brasileira, ao ampliar a entrada de investimentos estrangeiros e integrar segmentos da estrutura produtiva nacional às cadeias globais de valor, implicou necessariamente a superação de relações históricas de dependência econômica, uma vez que a participação de empresas transnacionais passou a diversificar a estrutura industrial e a elevar a autonomia decisória do território brasileiro diante dos centros econômicos internacionais.", g: "E" },
+          { n: 34, q: "Considerando a interpretação de Milton Santos acerca do território usado, a integração do Brasil à economia internacional não deve ser entendida como processo espacialmente homogêneo, pois a incorporação de determinados lugares às redes globais pode ocorrer de maneira seletiva, subordinando parcelas do território a lógicas externas de produção e circulação, sem eliminar as relações e dinâmicas construídas localmente.", g: "C" }
+        ]
+      },
+      {
+        section: "Geografia do Brasil (continuação)",
+        textRef: `Texto de referência (Q35-36):\nA estrutura etária da população brasileira vem passando por profunda transformação em decorrência do avanço da transição demográfica. A redução da fecundidade, iniciada de forma mais evidente a partir do final da década de 1960, associada à redução da mortalidade e ao aumento da longevidade, modificou progressivamente a composição da população por grupos de idade...\n(CARVALHO, José Alberto Magno de; RODRÍGUEZ-WONG, Laura L., 2018)`,
+        items: [
+          { n: 35, q: "Considerando-se a transição demográfica brasileira, a redução da participação relativa da população jovem e a expansão do contingente idoso permitem afirmar que a estrutura etária do país tende a produzir, de forma automática e permanente, uma elevação da razão de dependência total, pois o aumento da participação dos idosos mais que compensa a diminuição da dependência associada à população jovem em todas as etapas da transição demográfica.", g: "E" },
+          { n: 36, q: "A existência de diferenças regionais na estrutura etária brasileira não contradiz a tendência nacional de envelhecimento demográfico; ao contrário, revela que a transição etária ocorre em ritmos espacialmente diferenciados, de modo que áreas com maior participação relativa de jovens podem coexistir com outras nas quais o envelhecimento populacional se encontra mais avançado.", g: "C" }
+        ]
+      },
+      {
+        section: "Geografia do Maranhão",
+        items: [
+          { n: 37, q: "A Área de Proteção Ambiental das Reentrâncias Maranhenses está localizada no litoral ocidental do Maranhão, estendendo-se de Alcântara até a foz do rio Gurupi. Criada pelo Decreto nº 11.901, de 11 de junho de 1991, a APA caracteriza-se pela presença de um litoral bastante recortado, com baías, enseadas e deltas, além de extensos manguezais de elevada produtividade pesqueira. Entre a fauna da região, destacam-se o guará, que nidifica e se reproduz na Ilha do Cajual, em Alcântara, além do boto e do peixe-boi.", g: "E" },
+          { n: 38, q: "O Parque Nacional dos Lençóis Maranhenses, situado na planície litorânea ocidental do Maranhão, apresenta ecossistemas associados ao ambiente costeiro-marinho, com destaque para manguezais, restingas e extensos campos de dunas. A unidade é administrada pelo Instituto Chico Mendes de Conservação da Biodiversidade (ICMBio) e abrange os municípios de Barreirinhas, Primeira Cruz e Santo Amaro do Maranhão.", g: "E" },
+          { n: 39, q: "A grande extensão territorial do Maranhão e sua localização geográfica, como área de transição entre a região amazônica, caracterizada por maior umidade, e o Nordeste, marcado por condições mais secas, contribuem para a existência de contrastes espaciais na distribuição das precipitações. Dessa forma, os índices pluviométricos tendem a ser mais elevados no sudeste do estado, onde podem alcançar médias anuais próximas de 2.800 mm, enquanto no noroeste os valores médios anuais podem ficar em torno de 1.200 mm.", g: "E" },
+          { n: 40, q: "Aproximadamente 90% do território maranhense encontra-se inserido em bacias sedimentares de cobertura fanerozoica, relacionadas às Eras Paleozoica, Mesozoica e Cenozoica, enquanto cerca de 10% corresponde a terrenos pré-cambrianos, representados pelos fragmentos cratônicos de São Luís e pelo Cinturão Gurupi, que compõem o embasamento aflorante no extremo noroeste do estado.", g: "C" },
+          { n: 41, q: "O relevo maranhense apresenta diversidade de formas, incluindo a planície litorânea, caracterizada pela ocorrência de extensas dunas e planícies fluviais, a Baixada Maranhense, marcada por áreas de baixa altitude e terrenos sujeitos a inundações periódicas, além dos planaltos e da Depressão de Balsas nas áreas interioranas. De modo geral, a partir da porção centro-sul do estado, onde predominam formas de planaltos submetidas à atuação de processos erosivos, verifica-se um rebaixamento progressivo do relevo em direção ao centro-norte e ao litoral, onde predominam formas associadas à deposição de sedimentos fluviais e marinhos.", g: "C" },
+          { n: 42, q: "Os depósitos e ocorrências de ouro no Maranhão concentram-se principalmente em bacias sedimentares do Pré-Cambriano, associados aos núcleos de São Luís e Gurupi, localizados no norte e noroeste do estado. Entre os municípios que se destacam pela ocorrência desse mineral estão Godofredo Viana, Cândido Mendes, Luís Domingues, Centro Novo do Maranhão e Centro do Guilherme.", g: "E" },
+          { n: 43, q: "O rio Mearim, integrante da maior bacia hidrográfica genuinamente maranhense, nasce na Serra da Menina, entre os municípios de Formosa da Serra Negra, Fortaleza dos Nogueiras e São Pedro dos Crentes, recebendo inicialmente a denominação de ribeirão Água Boa. Com aproximadamente 930 km de extensão, o rio segue, inicialmente, na direção sudoeste-nordeste até Esperantinópolis, onde, após receber as contribuições do rio Flores, passa a fluir para o norte, desembocando na baía de São Marcos, entre São Luís e Alcântara. Entre seus principais afluentes destacam-se os rios balsas e Emanuel Alves Grande.", g: "E" },
+          { n: 44, q: "O fruto do babaçu apresenta diferentes partes que podem ser aproveitadas economicamente. O epicarpo, camada mais externa, pode ser utilizado na fabricação de xaxim, estofados, embalagens, vasos e como adubo orgânico; o mesocarpo, rico em amido, é utilizado na produção de farinha; o endocarpo pode ser empregado na fabricação de artesanatos e como substituto da lenha; enquanto as amêndoas são utilizadas, entre outras finalidades, na alimentação e na fabricação de cosméticos.", g: "C" }
+        ]
+      },
+      {
+        section: "Raciocínio Lógico",
+        items: [
+          { n: 45, q: "Considere verdadeiras as seguintes afirmações:\nI. Sou policial ou não sou legista.\nII. Sou médico ou sou legista.\nIII. Sou perito ou não sou médico.\nSe não sou policial, então posso concluir que sou perito e sou médico.", g: "C" },
+          { n: 46, q: "Dada a afirmação: \"Todo político é corrupto.\", a afirmação é logicamente equivalente a \"Quem não é político não é corrupto.\".", g: "E" },
+          { n: 47, q: "Considere a proposição: \"O contingente de policiais aumenta ou O contingente de policiais não aumenta \". Nesse caso, a quantidade de linhas da tabela verdade é igual a 4.", g: "E" },
+          { n: 48, q: "As proposições \"Se o delegado não prender o chefe da quadrilha, então a operação agarra não será bem-sucedida\" e \"Se o delegado prender o chefe da quadrilha, então a operação agarra será bem-sucedida\" são equivalentes.", g: "E" },
+          { n: 49, q: "Não é possível interpretar como V a proposição (P -> Q) ^ (P ^ ~Q).", g: "C" },
+          { n: 50, q: "As proposições [A v (-B)] -> (-A) e [(-A) ^ B] v (-A) são equivalentes.", g: "C" }
+        ]
+      },
+      {
+        section: "Legislação Institucional",
+        items: [
+          { n: 51, q: "Em igualdade de posto ou graduação, a precedência entre militares da ativa e os da reserva remunerada, quando convocados, é definida pelo tempo de serviço no posto ou graduação.", g: "C" },
+          { n: 52, q: "Os Cadetes são promovidos à Aspirantes-a-Oficial pelo Comandante-Geral da Polícia Militar do Maranhão.", g: "E" },
+          { n: 53, q: "O policial-militar só poderá ser preso por autoridade policial em caso de flagrante delito.", g: "C" },
+          { n: 54, q: "O servidor militar da ativa que aceitar cargo público civil permanente será transferido para a reserva não-remunerada.", g: "C" },
+          { n: 55, q: "O Comando é a soma de autoridade, deveres e responsabilidades de que o militar é investido legalmente, quando conduz homens ou dirige uma Organização Policial-Militar. O Comando é vinculado ao grau hierárquico e constitui uma prerrogativa impessoal, em cujo exercício o policial-militar se define e se caracteriza como chefe.", g: "C" },
+          { n: 56, q: "O Servidor militar que se julgar prejudicado ou ofendido por qualquer ato administrativo ou disciplinar de superior hierárquico poderá recorrer ou interpor pedido de reconsideração, queixa ou representação, segundo legislação vigente na Corporação.", g: "C" },
+          { n: 57, q: "João Martins, nascido na cidade de Viana (MA), estudou na Loja do Concurseiro, e hoje é Aluno do Curso de Formação de Soldados. Nesse caso, poderá, excepcionalmente ou em reuniões sociais, ter acesso ao círculo de subtenentes e sargentos.", g: "E" },
+          { n: 58, q: "No intuito de desenvolver a prática profissional dos integrantes do Quadro de Saúde, é lhes permitido o exercício da atividade técnico-profissional no meio civil, desde que tal prática não prejudique o serviço.", g: "C" },
+          { n: 59, q: "As promoções serão efetuadas, dentre outros, pelos critérios de antiguidade, merecimento, tempo de serviço, e \"post mortem\", mediante ato do Governador do Estado.", g: "E" },
+          { n: 60, q: "Não se configura a dependência econômica quando o beneficiário do salário-família perceber rendimento do trabalho ou de qualquer outra fonte, inclusive pensão ou proventos da aposentadoria, em valor igual ou superior ao salário mínimo.", g: "C" },
+          { n: 61, q: "Reversão é a situação na qual o policial-militar da ativa deixa de ocupar vaga na escala hierárquica do seu quadro, nela permanecendo sem número.", g: "E" },
+          { n: 62, q: "A Sargento PM Lisandra Castro participava de uma operação militar de reintegração de posse na cidade de Balsas (MA) quando desapareceu. Seu paradeiro é desconhecido pela corporação por mais de 8 dias consecutivos. Nesse caso, necessariamente, a Sargento PM deverá ser considerada desertora.", g: "E" },
+          { n: 63, q: "A exclusão a bem da disciplina poderá ser applied aos praças que tenham sido condenados à pena restritiva de liberdade individual superior a 02 (dois) anos, pela Justiça Militar ou Comum.", g: "E" },
+          { n: 64, q: "O cargo policial-militar é considerado vago a partir de sua criação e até que um policial-militar tome posse ou desde o momento em que o policial-militar exonerado que foi dispensado o deixe, até que outro policial-militar tome posse. Considera-se também vago os cargos policiais-militares cujo os ocupantes tenham sido considerado extraviados.", g: "C" },
+          { n: 65, q: "Situação hipotética: O Coronel QOPM da ativa, Eurico Castro, está trabalhando rotineiramente no gabinete do Presidente da Assembleia Legislativa do Estado do Maranhão. Assertiva: Nos termos da lei estadual nº 6513/95, pode-se afirmar que compete ao Chefe do Executivo liberar Eurico para exercer suas funções nesse órgão.", g: "C" },
+          { n: 66, q: "De acordo com a lei estadual nº 6513/95, conclui-se que os cabos e soldados auxiliam e complementam as atividades dos oficiais, quer no adestramento e no emprego dos meios, quer na instrução e na administração ou na execução de atividades de Polícia Ostensiva.", g: "E" },
+          { n: 67, q: "O Governador do Estado do Maranhão publicou decreto nomeando o Coronel Marcos, oficial da ativa do Quadro de Oficiais de Estado-Maior (QOEM) e possuidor do Curso de Comando e Estado-Maior (CCEM), para exercer o cargo de Comandante-Geral da PMMA. Sabendo-se que a Polícia Militar do Maranhão é órgão da administração direta de regime especial, subordinada hierarquicamente ao Governador e vinculada à Secretaria de Estado da Segurança Pública, a referida nomeação atendeu integralmente aos requisitos legais previstos na Lei de Organização Básica.", g: "C" },
+          { n: 68, q: "Durante uma crise na ordem pública estadual, uma tropa da PMMA atuou de forma repressiva precedendo o eventual emprego das Forças Armadas. Paralelamente, em razão de convênio celebrado com o município, agentes da corporação exerceram a fiscalização de trânsito, cumpriram mandados de prisão referentes a infrações penais militares praticadas por seus membros e ministraram treinamento tático militar para os guardas municipais locais. Tendo em vista as competências da PMMA, a conduta da corporação foi totalmente respaldada pela legislação vigente.", g: "E" },
+          { n: 69, q: "O Coronel Roberto, ao assumir o cargo de Comandante-Geral da PMMA, passou a receber a complementação da retribuição pecuniária para equivaler ao subsídio de Secretário de Estado. Meses depois, o Coronel Lima assumiu o cargo de Subcomandante-Geral, fazendo jus a uma complementação indenizatória correspondente à diferença entre a retribuição do seu cargo de origem e 50% da complementação paga ao Comandante-Geral. Ambas as complementações indenizatórias sofreram o desconto previdenciário para o custeio da inatividade dos militares. Considerando o regime retributivo do Comando-Geral e Subcomando-Geral, a incidência da contribuição previdenciária sobre as parcelas complementares deu-se em estrita consonância com a Lei de Organização Básica.", g: "E" },
+          { n: 70, q: "Quarenta e cinco dias após tomar posse, o Comandante-Geral da PMMA apresentou o seu Plano de Comando contendo o diagnóstico de recursos humanos, metas quantitativas e qualitativas de produtividade e programas de capacitação. Além disso, ao final do ano, determinou a ampla divulgação pública de relatório de atividades contendo dados de letalidade/vitimização de policiais e civis, ocorrências por tipo, orçamento executado e os tipos de apurações disciplinares instauradas com as sanções aplicadas. Com base nas regras de gestão e transparência institucional, o procedimento adotado pela autoridade atendeu perfeitamente às exigências legais estipuladas na norma de organização.", g: "C" },
+          { n: 71, q: "Em uma reorganização dos cargos de direção geral e correição, o Governador do Estado nomeou o Coronel Antônio como Chefe do Estado-Maior Geral e o Coronel Carvalho como Corregedor-Geral, ambos oficiais da ativa do QOEM. Na cadeia hierárquica e funcional de substituição eventual do último posto, ficou determinado que o Chefe do EMG é o substituto imediato do Subcomandante-Geral, enquanto o Corregedor-Geral é o substituto imediato do Chefe do EMG, subordinando-se o Corregedor-Geral ao Comandante-Geral, ao Subcomandante-Geral e ao Chefe do EMG. A estruturação e as substituições previstas pela autoridade estão em inteira conformidade com a LOB/PMMA.", g: "C" },
+          { n: 72, q: "O Comando de Policiamento Metropolitano (CPM) e o Comando de Policiamento Especializado (CPE) são Grandes Comandos. Ambos possuem sede fixada no município de São Luís e, por serem órgãos estratégicos de direção setorial, possuem limitação territorial de circunscrição restrita apenas aos municípios da Região Metropolitana da Capital.", g: "E" },
+          { n: 73, q: "O Alto Comando da PMMA reuniu-se para deliberar sobre o orçamento anual e propostas de alteração legislativa. Na reunião, participaram o Comandante-Geral (presidente), o Subcomandante-Geral, o Chefe do EMG, o Corregedor-Geral e os titulares dos órgãos de direção setorial. Paralelamente, constituiu-se o Conselho Consultivo Superior, integrado pelo Comandante-Geral, Subcomandante-Geral, Chefe do EMG e pelos Coronéis da ativa que já exerceram o cargo de Comandante-Geral da Corporação. Adicionalmente, definiu-se que a Comissão de Promoção de Oficiais (CPO) seria presidida pelo Comandante-Geral e a Comissão de Promoção de Praças (CPP) pelo Subcomandante-Geral. As composições descritas estão integralmente corretas perante a lei.", g: "C" },
+          { n: 74, q: "A Academia de Polícia Militar Gonçalves Dias (APMGD) e o Centro de Educação, Formação e Aperfeiçoamento Profissional (CEFAP) são órgãos de apoio de ensino da PMMA. Por determinação legal, ambos possuem regimento próprio para dispor sobre o seu funcionamento e o regime disciplinar aplicável aos alunos, sendo a APMGD vinculada academicamente à Universidade Estadual do Maranhão (UEMA).", g: "C" },
+          { n: 75, q: "O município de Caxias firmou convênio com a PMMA para a manutenção de uma unidade do Colégio Militar Tiradentes em sua rede municipal. Como a referida escola municipal não integra a estrutura orgânica própria da Polícia Militar, a função de Diretor do colégio conveniado deverá ser exercida obrigatoriamente por um Oficial Superior da ativa designado pelo Comandante-Geral, sendo vedado o aproveitamento de militares da reserva remunerada.", g: "E" },
+          { n: 76, q: "Durante uma operação integrada, o Batalhão de Operações Especiais (BOPE) realizou negociação em uma crise com reféns; o Batalhão de Polícia Militar de Choque (BPChoq) atuou no controle de distúrbios civis; e o 1º Batalhão de Motopatrulhamento Tático (1º BMT) executou policiamento tático sobre motocicletas. Sabendo-se que o BOPE e o BPChoq são subordinados ao Comando de Missões Especiais (CME), enquanto o 1º BMT é subordinado ao Comando de Policiamento Especializado (CPE), as atribuições descritas e suas respectivas vinculações administrativas aos Grandes Comandos estão corretas.", g: "C" },
+          { n: 77, q: "A 1ª Companhia de Polícia de Guardas Independente 1ª CPGd Ind, é órgão de execução operacional responsável pela segurança do Quartel do Comando-Geral e do Presídio Militar, conforme o inciso XIV do artigo 73 da lei Lei nº 12.896/2026.", g: "E" },
+          { n: 78, q: "O Soldado Lucas, aprovado em concurso público, concluiu o Curso de Formação de Praças e obteve sua primeira classificação na área do Comando de Policiamento de Área do Interior 3 (CPAI-3). Após 1 (um) ano e meio de serviço no local, Lucas solicitou sua remoção para São Luís por interesse pessoal de ficar próximo à família. O Comandante-Geral indeferiu o pedido com base no mandamento legal que exige a permanência mínima de 3 anos no local da primeira classificação, ressalvada a movimentação por necessidade de serviço ou motivo de relevante interesse público autorizada pelo Governador. A decisão do Comandante-Geral está amparada na Lei de Organização Básica.", g: "C" },
+          { n: 79, q: "Március, bacharel em Direito, ingressou na PMMA no Quadro de Oficiais de Estado-Maior (QOEM). Seu amigo Juliano, que é Praça da corporação, concluiu o Curso de Habilitação de Oficiais e ingressou no Quadro de Oficiais Especialistas (QOE). Por fim, Renato ingressou no Quadro de Praças (QP) mediante concurso de nível superior. Sabendo-se que os integrantes do QOEM e do QP podem chegar ao posto de Coronel e à graduação de Subtenente, respectivamente, e que os integrantes do QOE podem progredir até o posto de Tenente-Coronel, os perfis profissionais apresentados correspondedm às regras de ingresso e ascensão na corporação.", g: "C" },
+          { n: 80, q: "O Capitão PM Silva foi designado pelo Comandante-Geral para assumir, de forma transitória e por necessidade de serviço, o comando de uma Unidade cujo cargo era privativo do posto de Major, tendo em vista a inexistência de oficiais superiores disponíveis no local. O Capitão pertence ao QOEM e possui a compatibilidade técnica para o exercício da função. Sob a ótica das regras de substituição e designação funcional, a conduta do Comandante-Geral encontra amparo legal na norma de organização.", g: "C" },
+          { n: 81, q: "A Polícia Militar do Maranhão é uma instituição militar permanente, exclusiva e típica de Estado, essencial à Justiça Militar e força auxiliar e reserva do Exército. Entre suas diretrizes básicas expressas na legislação nacional, inclui-se a garantia do livre convencimento técnico-jurídico do oficial no exercício da polícia judiciária militar.", g: "C" },
+          { n: 82, q: "A conduta de João foi ilegal, pois o exercício da polícia ostensiva voltada à proteção ambiental como a lavratura de autos de infração e aplicação de penalidades administrativas é competência privativa dos órgãos ambientais civis e dos Corpos de Bombeiros Militares, não cabendo às Polícias Militares a atribuição de lavrar autos de infração ambiental.", g: "E" },
+          { n: 83, q: "A organização das Polícias Militares é fixada em lei de iniciativa privativa do Governador do Estado. O Comandante-Geral da Polícia Militar do Maranhão, a ser nomeado pelo Governador entre os oficiais da ativa do último posto do Quadro de Oficiais de Estado-Maior (QOEM) possuidores do Curso de Comando e Estado-Maior (CCEM), assegura, enquanto permanecer no cargo, as prerrogativas de General de Brigada para fins de precedência e sinais de respeito.", g: "C" },
+          { n: 84, q: "Um civil com 32 anos de idade quer prestar concurso para o Quadro de Oficiais de Estado-Maior (QOEM) da Polícia Militar mas está em dúvida sobre o limite de idade. Por outro lado, um 1º sargento, com 45 anos, pretende concorrer ao mesmo certame para o QOEM. Nesses casos, segundo as regras gerais da Lei nº 14.751/2023, os integrantes já pertencentes à instituição militar não se sujeitam a limite de idade para o concurso público de ingresso no QOEM.", g: "C" },
+          { n: 85, q: "A perda do posto e da patente dos oficiais ocorrerá somente se este for julgado indigno do oficialato ou com ele incompatível por decisão do Tribunal de Justiça Militar (ou Tribunal de Justiça do Estado). No entanto, a referida garantia constitucional e legal da perda do posto por decisão judicial não se estende às praças, cuja perda de graduação pode ser determinada por ato meramente administrativo do Comandante-Geral.", g: "E" },
+          { n: 86, q: "O militar da ativa ou veterano da reserva remunerada preso preventivamente por determinação judicial antes do trânsito em julgado tem o direito de cumprir a prisão em unidade prisional militar do respectivo ente e, na falta desta, em unidade militar estadual, à disposição da autoridade judiciária competente.", g: "C" },
+          { n: 87, q: "O Sargento PM Carlos, com 12 anos de efetivo serviço na PMMA, resolveu candidatar-se ao cargo de Deputado Estadual. De acordo com a Lei Orgânica Nacional, Carlos deverá ser afastado do serviço ativo no dia posterior ao registro de sua candidatura e, caso não seja eleito, retornará imediatamente ao serviço ativo sem prejuízo na carreira.", g: "E" },
+          { n: 88, q: "Na hipótese de decretação de intervenção federal ou estado de sítio pela União, as Polícias Militares poderão ser convocadas pelo Ministério competente. Caso um policial militar do Maranhão venha a responder a processo judicial em decorrência de sua atuação efetiva no período da convocação federal, sua representação judicial será exercida pela Advocacia-Geral da União (AGU).", g: "C" },
+          { n: 89, q: "Com o objetivo de manter a padronização nacional, o Decreto do Poder Executivo Federal que definir os parâmetros mínimos para o fardamento e a cor das viaturas deve obrigatoriamente estipular o prazo máximo de 5 (cinco) anos para que os Estados realizem as adequações, sob pena de suspensão de repasses do Fundo Nacional de Segurança Pública.", g: "E" },
+          { n: 90, q: "A Lei nº 14.751/2023 permite que os integrantes das Polícias Militares exerçam funções no âmbito de outro ente federado mediante permuta ou cessão, desde que haja solicitação dos interessados, autorização expressa dos respectivos Comandantes-Gerais e observância da legislação aplicável, assegurados todos os direitos e vantagens do Estado de origem.", g: "C" }
+        ]
+      },
+      {
+        section: "Informática",
+        items: [
+          { n: 91, q: "No Windows, o armazenamento e a organização das informações é feita através de uma hierarquia que do mais externo para o mais interno representada por: Pastas / Arquivos / Unidades;", g: "E" },
+          { n: 92, q: "No Windows 11, o aplicativo mais indicado para executar a manipulação de pastas e arquivos é o Windows Explorer.", g: "E" },
+          { n: 93, q: "O update do SO Windows 11 sempre necessita da intervenção do usuário para a instalação de atualizações de segurança.", g: "E" },
+          { n: 94, q: "A finalidade padrão dos três botões superiores direitos da janela é, respectivamente, Minimizar, Maximizar e Fechar a janela.", g: "E" },
+          { n: 95, q: "O modelo cliente/servidor, em que uma máquina denominada cliente requisita serviços a outra, denominada servidor, ainda é o atual paradigma de acesso à Internet.", g: "C" },
+          { n: 96, q: "Normalmente, as intranets contêm dados e informações que não devem estar ao alcance de qualquer pessoa. Para dificultar o acesso de terceiros às informações mantidas na intranet se faz necessário o uso de um firewall.", g: "C" },
+          { n: 97, q: "Considerando as tecnologias de redes LAN (local area network) e WAN (wide area network), uma Superintendência da Polícia Federal poderia Implantar uma LAN em cada Delegacia, interligando estes redes locais por meio de uma WAN que abrangeria todo o País.", g: "C" },
+          { n: 98, q: "Um protocolo é um conjunto de regras e convenções precisamente definidas que possibilitam a comunicação através de uma rede e, para garantir a entrega dos dados, o protocolo TCP espera que os segmentos recebidos sejam confirmados pela máquina de destino. Se a recepção não for confirmada dentro de um intervalo de tempo, a máquina na origem transmite novamente o segmento.", g: "C" },
+          { n: 99, q: "Alguns sites da Web armazenam informações em um arquivo texto pequeno no seu disco rígido. Estes arquivos contém informações sobre você e suas preferências. Estes arquivos são denominados Cache.", g: "E" },
+          { n: 100, q: "Os computadores na Internet são tratados através de um endereço simbólico alfanumérico. Entretanto este endereço simbólico precisa ser convertido em um endereço numérico que é tratado diretamente pela rede. O DNS é o conjunto formado por esses servidores, sua interface e, suas aplicações.", g: "C" },
+          { n: 101, q: "Os problemas de segurança e crimes por computador são de especial importância para os projetistas e usuários de sistemas de informação. Com relação à segurança da informação julgue: autenticidade é a garantia de que os sistemas desempenharão seu papel com eficácia em um nível de qualidade aceitável.", g: "E" },
+          { n: 102, q: "A codificação de dados a serem transferidos de maneira a não serem violados se capturados indevidamente recebe o nome de comutação.", g: "E" },
+          { n: 103, q: "Um trojan (cavalo de Troia) é um programa auto-replicante, semelhante a um vírus. Enquanto um vírus infecta um programa e necessita desse programa hospedeiro para se propagar, o trojan é um programa completo e não precisa de outro para se propagar.", g: "E" },
+          { n: 104, q: "Backup é uma cópia de dados de um dispositivo de armazenamento a outro para que possam ser restaurados em caso da perda dos dados originais, o que pode envolver apagamentos acidentais ou corrupção de dados.", g: "C" },
+          { n: 105, q: "Botnet é um tipo de código malicioso e, é projetado para monitorar as atividades de um sistema e enviar as informações coletadas para terceiros.", g: "E" },
+          { n: 106, q: "Com relação ao suite de aplicativos LibreOffice e, seus aplicativos Writer, Calc e Impress julgue os itens a seguir. Para salvar as modificações feitas em um documento do LibreOffice Writer usa-se as teclas de atalho CTRL+S.", g: "C" },
+          { n: 107, q: "CTRL+O é o conjunto de teclas que, quando selecionadas ao mesmo tempo pelo usuário, criam um novo documento no LibreOffice Writer.", g: "E" },
+          { n: 108, q: "Considere a seguinte situação em uma planilha do LibreOffice Calc 6: A1=José, B1=14; A2=Álvaro, B2=72; A3=Penélope, B3=130; A4=Dominique, B4=188; A5=Próximo. Se selecionar as células de B1 até B4 e depois arrastar essa seleção pela alça de preenchimento para a célula B5, fará com que o valor correspondente a Próximo seja 246.", g: "C" },
+          { n: 109, q: "O Libreoffice Impress possui cinco modos de exibição principais: Normal, Estrutura de tópicos, Notas, Folheto, Classificador de Slides.", g: "C" },
+          { n: 110, q: "HTTP (Hypertext Transfer Protocol) é uma linguagem de descrição por hipertexto que foi desenvolvida para a criação e o armazenamento de páginas web acessíveis por browser ou navegador. Para que o navegador permita a seus usuários interagirem com páginas web criadas com o HTTP, é necessário que a essas páginas tenham sido associados endereços eletrônicos da Internet (URL).", g: "E" },
+          { n: 111, q: "Quando uma mensagem eletrônica é enviada, se o endereço de e-mail do destinatário for conhecido, a mensagem, por questão de velocidade, é transferida diretamente de uma pasta local do computador do usuário emissor para um diretório localizado no computador do destinatário, sem ter de passar por um servidor.", g: "E" },
+          { n: 112, q: "O Kernel de um Sistema Operacional representa a camada mais baixa de interface com o hardware, sendo responsável por gerenciar os recursos do sistema como um todo. Ele define as funções para operação com periféricos e gerenciamento de memória.", g: "C" },
+          { n: 113, q: "Sobre um servidor SMB, é correto afirmar que o mesmo só pode ser instalado em servidores que executem o sistema operacional Windows.", g: "E" },
+          { n: 114, q: "A Engenharia Reversa é a arte de reverter códigos já compilados para uma forma que seja legível pelo ser humano. Técnicas de engenharia reversa são aplicadas na análise de vírus e também em atividades ilegais, como a quebra de proteção anticópia. A engenharia reversa é ilegal em diversos países.", g: "C" },
+          { n: 115, q: "A possibilidade de acessar arquivos e executar diferentes tarefas pela internet, não precisar instalar programas no computador, pois é possível acessar diferentes serviços online e, os dados se encontrarem em uma rede e não em um computador específico. São vantagens e característica da computação em nuvem.", g: "C" },
+          { n: 116, q: "O sistema operacional GNU/Linux Suse permite escolher ambientes de trabalhos diferentes, entre KDE, Gnome e XFCE. Cada um com características próprias, porém o Gnome é um dos ambientes de trabalho mais utilizado no Linux Suse. O K3B é o navegador de Internet oficial do Gnome.", g: "E" },
+          { n: 117, q: "NTFS é a uma estrutura mantida pelo sistema operacional Windows, para controle das áreas livres e ocupadas em um HD. O Linux, entretanto, para a mesma função, usa o EXT4. NTFS e EXT4 são acrônimos que representam sistemas de arquivos usados por sistemas operacionais.", g: "C" },
+          { n: 118, q: "Os switches são dispositivos semelhantes a hubs, mas não repetem o mesmo pacote para todas as portas. Cada pacote é dirigido para o dispositivo de destino, evitando colisões e excesso de tráfego.", g: "C" },
+          { n: 119, q: "Entre as características em relação ao sistema operacional GNU/Linux podemos citar multiusuário e monotarefa, leitura de executáveis digitados em comandos em um console e, memória virtual.", g: "C" },
+          { n: 120, q: "A computação nas nuvens traz imensos benefícios e ganhos com a possibilidade de acessar arquivos e executar tarefas através da Internet. Dropbox, Google Drive e iCloud são alguns exemplos desse serviço.", g: "C" }
+        ]
+      }
+    ];
+
+    let userAnswers = {};
+
+    function renderQuiz() {
+      const container = document.getElementById('quiz-content');
+      container.innerHTML = '';
+
+      questionsData.forEach(sec => {
+        const secTitle = document.createElement('h2');
+        secTitle.className = 'section-title';
+        secTitle.innerText = sec.section;
+        container.appendChild(secTitle);
+
+        if (sec.textRef) {
+          const textDiv = document.createElement('div');
+          textDiv.className = 'text-ref';
+          textDiv.innerHTML = `<h4>Texto de Referência</h4>${sec.textRef}`;
+          container.appendChild(textDiv);
+        }
+
+        sec.items.forEach(item => {
+          const qCard = document.createElement('div');
+          qCard.className = 'question-card blank-card';
+          qCard.id = `card-${item.n}`;
+
+          const gabLabel = item.g === 'C' ? 'CERTO' : 'ERRADO';
+
+          qCard.innerHTML = `
+            <div class="q-number">Questão ${item.n}</div>
+            <div class="q-text">${item.q}</div>
+            <div class="options-group">
+              <button class="btn-option" id="btn-${item.n}-C" onclick="selectOption(${item.n}, 'C', '${item.g}')">CERTO</button>
+              <button class="btn-option" id="btn-${item.n}-E" onclick="selectOption(${item.n}, 'E', '${item.g}')">ERRADO</button>
+              <button class="btn-option" id="btn-${item.n}-B" onclick="selectOption(${item.n}, 'B', '${item.g}')">EM BRANCO</button>
+            </div>
+            <div class="gabarito-box" id="gabarito-box-${item.n}">
+              <span>Gabarito Oficial: <span class="badge-gabarito ${item.g}">${gabLabel}</span></span>
+              <span class="user-result blank" id="result-${item.n}">Não respondida (0 Pts)</span>
+            </div>
+          `;
+
+          container.appendChild(qCard);
+        });
+      });
+    }
+
+    function selectOption(qNum, selected, gabarito) {
+      userAnswers[qNum] = selected;
+
+      // Revela o gabarito apenas após o clique do usuário
+      const gabBox = document.getElementById(`gabarito-box-${qNum}`);
+      gabBox.style.display = 'flex';
+
+      // Atualiza estado dos botões
+      document.getElementById(`btn-${qNum}-C`).className = 'btn-option' + (selected === 'C' ? ' selected-C' : '');
+      document.getElementById(`btn-${qNum}-E`).className = 'btn-option' + (selected === 'E' ? ' selected-E' : '');
+      document.getElementById(`btn-${qNum}-B`).className = 'btn-option' + (selected === 'B' ? ' selected-B' : '');
+
+      const card = document.getElementById(`card-${qNum}`);
+      const resultText = document.getElementById(`result-${qNum}`);
+
+      if (selected === 'B') {
+        card.className = 'question-card blank-card';
+        resultText.className = 'user-result blank';
+        resultText.innerText = 'Em Branco (0 Pts)';
+      } else if (selected === gabarito) {
+        card.className = 'question-card correct-card';
+        resultText.className = 'user-result correct';
+        resultText.innerText = '✅ Você acertou (+1 Pt)';
+      } else {
+        card.className = 'question-card wrong-card';
+        resultText.className = 'user-result wrong';
+        resultText.innerText = '❌ Você errou (-1 Pt)';
+      }
+
+      updateScore();
+    }
+
+    function updateScore() {
+      let certas = 0;
+      let erradas = 0;
+      let brancos = 0;
+      let respondidas = 0;
+
+      questionsData.forEach(sec => {
+        sec.items.forEach(item => {
+          const ans = userAnswers[item.n];
+          if (ans === 'C' || ans === 'E') {
+            respondidas++;
+            if (ans === item.g) {
+              certas++;
+            } else {
+              erradas++;
+            }
+          } else {
+            brancos++;
+          }
+        });
+      });
+
+      const score = certas - erradas;
+
+      document.getElementById('stat-total').innerText = respondidas;
+      document.getElementById('stat-certo').innerText = certas;
+      document.getElementById('stat-errado').innerText = erradas;
+      document.getElementById('stat-branco').innerText = brancos;
+      document.getElementById('stat-score').innerText = score;
+    }
+
+    function resetQuiz() {
+      if (confirm("Tem certeza que deseja reiniciar o simulado?")) {
+        userAnswers = {};
+        renderQuiz();
+        updateScore();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    renderQuiz();
+  </script>
+</body>
+</html>
